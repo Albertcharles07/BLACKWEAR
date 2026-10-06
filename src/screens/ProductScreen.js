@@ -4,70 +4,30 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 
 import Footer from '../components/Footer';
-import { product } from '../data/products';
+import { products } from '../data/products';
+import Header from '../components/Header';
 import { useCart } from '../context/CartContext';
 
 const sizes = ['P', 'M', 'G', 'GG'];
 
-export default function ProductScreen({ navigation }) {
-  const [search, setSearch] = useState('');
+export default function ProductScreen({ navigation, route }) {
+  const product = products.find(item => item.id === route.params?.productId) || products[0];
   const [selectedSize, setSelectedSize] = useState('M');
-  const { addProduct, totalQuantity } = useCart();
+  const { addProduct } = useCart();
 
   function addToCart() {
     addProduct(product, selectedSize);
     navigation.navigate('Cart');
   }
 
-  function submitSearch() {
-    navigation.navigate('Home');
-  }
-
   return (
     <View style={styles.page}>
       <ScrollView>
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.logo}>BLACKWEAR</Text>
-          </Pressable>
-
-          <View style={styles.searchContainer}>
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              onSubmitEditing={submitSearch}
-              placeholder="Pesquisar produtos..."
-              placeholderTextColor="#bdbdbd"
-              style={styles.searchInput}
-            />
-            <Pressable style={styles.searchButton} onPress={submitSearch}>
-              <Text>🔍</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.headerActions}>
-            <Pressable
-              style={styles.accountLink}
-              onPress={() => navigation.navigate('Account')}
-            >
-              <Text>👤</Text>
-              <Text style={styles.accountText}>Conta</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.cartButton}
-              onPress={() => navigation.navigate('Cart')}
-            >
-              <Text>🛒</Text>
-              <Text style={styles.cartCount}>{totalQuantity}</Text>
-            </Pressable>
-          </View>
-        </View>
+        <Header navigation={navigation} />
 
         <Pressable
           style={styles.backArea}
@@ -88,15 +48,12 @@ export default function ProductScreen({ navigation }) {
         <View style={styles.info}>
           <Text style={styles.collection}>COLEÇÃO ESSENCIAL</Text>
 
-          <Text style={styles.title}>Camiseta Oversized Premium</Text>
+          <Text style={styles.title}>{product.name}</Text>
 
-          <Text style={styles.price}>R$ 189,90</Text>
+          <Text style={styles.price}>{product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
 
           <Text style={styles.description}>
-            Desenvolvida em algodão 100% premium com modelagem oversized confortável,
-            ombros caídos e gola canelada de 3cm que mantém o caimento estruturado.
-            {'\n\n'}
-            Uma peça minimalista feita para resistir ao tempo e ao desgaste urbano.
+            {product.id === 1 ? 'Desenvolvida em algodão 100% premium com modelagem oversized confortável, ombros caídos e gola canelada de 3cm.' : `${product.name} da coleção BLACKWEAR. Uma opção para compor seu estilo no dia a dia.`}
           </Text>
 
           <View style={styles.sizesArea}>
@@ -145,93 +102,10 @@ export default function ProductScreen({ navigation }) {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     backgroundColor: '#f5f5f5',
-  },
-  header: {
-    width: '100%',
-    minHeight: 82,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-    flexWrap: 'wrap',
-  },
-  logo: {
-    fontFamily: 'serif',
-    fontSize: 21,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: '#111111',
-  },
-  searchContainer: {
-    flex: 1,
-    minWidth: 140,
-    height: 43,
-    position: 'relative',
-  },
-  searchInput: {
-    width: '100%',
-    height: 43,
-    borderRadius: 999,
-    backgroundColor: '#111111',
-    color: '#ffffff',
-    paddingHorizontal: 17,
-    paddingRight: 50,
-    fontSize: 14,
-  },
-  searchButton: {
-    position: 'absolute',
-    right: 6,
-    top: 5,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  accountLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  accountText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cartButton: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#999999',
-    borderRadius: 22,
-    backgroundColor: '#eeeeee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartCount: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    minWidth: 19,
-    height: 19,
-    borderRadius: 10,
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 19,
-    paddingHorizontal: 4,
   },
   backArea: {
     paddingHorizontal: 16,

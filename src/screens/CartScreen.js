@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import Footer from '../components/Footer';
+import Header from '../components/Header';
 import { useCart } from '../context/CartContext';
 
 export default function CartScreen({ navigation }) {
@@ -18,6 +19,7 @@ export default function CartScreen({ navigation }) {
     increase,
     decrease,
     remove,
+    clearCart,
   } = useCart();
 
   const formatCurrency = (value) =>
@@ -29,22 +31,7 @@ export default function CartScreen({ navigation }) {
   return (
     <View style={styles.page}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.logo}>BLACKWEAR</Text>
-          </Pressable>
-
-          <View style={styles.headerRight}>
-            <Pressable onPress={() => navigation.navigate('Account')}>
-              <Text style={styles.accountLink}>👤 Conta</Text>
-            </Pressable>
-
-            <Pressable style={styles.cartIcon} onPress={() => navigation.navigate('Cart')}>
-              <Text>🛒</Text>
-              <Text style={styles.cartCount}>{totalQuantity}</Text>
-            </Pressable>
-          </View>
-        </View>
+        <Header navigation={navigation} />
 
         <Pressable
           style={styles.backArea}
@@ -114,7 +101,11 @@ export default function CartScreen({ navigation }) {
 
             <Pressable
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Success')}
+              onPress={() => {
+                const order = { number: `#${Date.now().toString(36).toUpperCase()}`, total, totalQuantity };
+                clearCart();
+                navigation.replace('Success', { order });
+              }}
             >
               <Text style={styles.checkoutText}>FINALIZAR COMPRA</Text>
             </Pressable>
@@ -145,59 +136,14 @@ export default function CartScreen({ navigation }) {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     backgroundColor: '#ffffff',
   },
   content: {
     paddingHorizontal: 16,
     paddingBottom: 60,
-  },
-  header: {
-    minHeight: 75,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-  },
-  logo: {
-    fontFamily: 'serif',
-    fontSize: 21,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  accountLink: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  cartIcon: {
-    position: 'relative',
-    width: 45,
-    height: 45,
-    borderWidth: 1,
-    borderColor: '#999999',
-    borderRadius: 23,
-    backgroundColor: '#eeeeee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartCount: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 4,
   },
   backArea: {
     marginTop: 20,
@@ -239,8 +185,8 @@ const styles = StyleSheet.create({
     gap: 13,
   },
   productImage: {
-    width: 115,
-    height: 115,
+    width: 96,
+    height: 108,
     flexShrink: 0,
     borderWidth: 1.5,
     borderColor: '#111111',
@@ -252,7 +198,7 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     color: '#666666',
     fontFamily: 'serif',
-    fontSize: 20,
+    fontSize: 13,
     fontWeight: '900',
   },
   productInfo: {

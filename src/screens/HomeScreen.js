@@ -11,14 +11,13 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { products } from '../data/products';
-import { useCart } from '../context/CartContext';
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1200&auto=format&fit=crop';
+
+const HERO_IMAGE = require('../../assets/banner.jpg');
 
 export default function HomeScreen({ navigation }) {
   const [search, setSearch] = useState('');
-  const { totalQuantity } = useCart();
+
 
   const filteredProducts = useMemo(() => {
     const value = search.trim().toLowerCase();
@@ -54,7 +53,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.main}>
           <View style={styles.hero}>
-            <Image source={{ uri: HERO_IMAGE }} style={styles.heroImage} />
+            <Image source={HERO_IMAGE} style={styles.heroImage} />
           </View>
 
           <View style={styles.productsSection}>
@@ -68,10 +67,10 @@ export default function HomeScreen({ navigation }) {
                 <Pressable
                   key={item.id}
                   style={styles.productCard}
-                  onPress={() => navigation.navigate('Product')}
+                  onPress={() => navigation.navigate('Product', { productId: item.id })}
                 >
                   <View style={styles.productImage}>
-                    <Text style={styles.productImageText}>BLACKWEAR</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit style={styles.productImageText}>BLACKWEAR</Text>
                   </View>
 
                   <View style={styles.productInfo}>
@@ -106,6 +105,9 @@ function formatCurrency(value) {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     backgroundColor: '#ffffff',
   },
   scroll: {
@@ -122,8 +124,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   announcementText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 11,
+    lineHeight: 16,
     textAlign: 'center',
   },
   main: {
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     width: '100%',
-    height: 180,
+    aspectRatio: 1.6,
     borderWidth: 3,
     borderColor: '#1688d4',
     borderRadius: 16,
@@ -159,18 +161,18 @@ const styles = StyleSheet.create({
     color: '#777777',
   },
   sectionTitle: {
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 16,
+    rowGap: 16,
   },
   productCard: {
-    width: '47.8%',
+    width: '48%',
     overflow: 'hidden',
     borderRadius: 12,
     backgroundColor: '#ffffff',
@@ -186,9 +188,10 @@ const styles = StyleSheet.create({
   },
   productImageText: {
     fontFamily: 'serif',
-    fontSize: 21,
+    fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 2,
+    letterSpacing: 0.5,
+    paddingHorizontal: 6,
     color: '#555555',
   },
   productInfo: {

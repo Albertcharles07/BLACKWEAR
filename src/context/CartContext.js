@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartContext = createContext(null);
@@ -12,7 +13,8 @@ export function CartProvider({ children }) {
     async function loadCart() {
       try {
         const saved = await AsyncStorage.getItem(CART_KEY);
-        setCart(saved ? JSON.parse(saved) : []);
+        const parsed = saved ? JSON.parse(saved) : [];
+        setCart(Array.isArray(parsed) ? parsed.filter(item => typeof item.name === 'string' && Number.isFinite(item.price) && item.price >= 0 && Number.isInteger(item.quantity) && item.quantity > 0 && typeof item.size === 'string') : []);
       } catch {
         setCart([]);
       } finally {
@@ -92,10 +94,11 @@ export function CartProvider({ children }) {
     setCart((current) => current.filter((_, i) => i !== index));
   }
 
-  async function clearCart() {
+  function clearCart() {
     setCart([]);
-    await AsyncStorage.removeItem(CART_KEY);
   }
+
+  if (!loaded) return <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color="#111" accessibilityLabel="Carregando carrinho" /></View>;
 
   return (
     <CartContext.Provider
