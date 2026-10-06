@@ -1,168 +1,36 @@
 import React from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Icon from './Icon';
 import { useCart } from '../context/CartContext';
-
-export default function Header({
-  navigation,
-  showSearch = false,
-  searchValue = '',
-  onSearchChange,
-  onSearchSubmit,
-}) {
+export default function Header({ navigation, showSearch = false, searchValue = '', onSearchChange, onSearchSubmit }) {
   const { totalQuantity } = useCart();
-
-  return (
-    <View style={styles.header}>
-      <View style={[styles.headerContainer, showSearch ? styles.headerWithSearch : null]}>
-        <Pressable onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>BLACKWEAR</Text>
+  return <View style={styles.header}>
+    <View style={styles.row}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Ir para a loja" onPress={() => navigation.navigate('Home')} style={styles.brand}>
+        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.logo}>BLACKWEAR</Text>
+      </Pressable>
+      <View style={styles.actions}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Minha conta" style={styles.account} onPress={() => navigation.navigate('Account')}>
+          <Icon name="account" /><Text style={styles.accountText}>Conta</Text>
         </Pressable>
-
-        {showSearch && (
-          <View style={styles.searchContainer}>
-            <TextInput
-              value={searchValue}
-              onChangeText={onSearchChange}
-              onSubmitEditing={onSearchSubmit}
-              placeholder="Encontre seu melhor estilo esportivo!"
-              placeholderTextColor="#bdbdbd"
-              style={styles.searchInput}
-              returnKeyType="search"
-            />
-            <Pressable style={styles.searchButton} onPress={onSearchSubmit}>
-              <Text style={styles.searchIcon}>🔍</Text>
-            </Pressable>
-          </View>
-        )}
-
-        <View style={styles.headerActions}>
-          <Pressable
-            style={styles.accountLink}
-            onPress={() => navigation.navigate('Account')}
-          >
-            <Text style={styles.accountIcon}>👤</Text>
-            <Text style={styles.accountText}>Conta</Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.cartButton}
-            onPress={() => navigation.navigate('Cart')}
-          >
-            <Text style={styles.cartIcon}>🛒</Text>
-            <Text style={styles.cartCount}>{totalQuantity}</Text>
-          </Pressable>
-        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Carrinho, ${totalQuantity} itens`} style={styles.cart} onPress={() => navigation.navigate('Cart')}>
+          <Icon name="cart" /><Text style={styles.badge}>{totalQuantity}</Text>
+        </Pressable>
       </View>
     </View>
-  );
+    {showSearch && <View style={styles.search}>
+      <TextInput accessibilityLabel="Pesquisar produtos" value={searchValue} onChangeText={onSearchChange} onSubmitEditing={onSearchSubmit} placeholder="Encontre seu melhor estilo esportivo!" placeholderTextColor="#bdbdbd" style={styles.input} returnKeyType="search" />
+      <Pressable accessibilityRole="button" accessibilityLabel="Pesquisar" style={styles.searchButton} onPress={onSearchSubmit}><Icon name="search" /></Pressable>
+    </View>}
+  </View>;
 }
-
 const styles = StyleSheet.create({
-  header: {
-    width: '100%',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-  },
-  headerContainer: {
-    minHeight: 82,
-    width: '100%',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  headerWithSearch: {
-    flexWrap: 'wrap',
-  },
-  logo: {
-    fontFamily: 'serif',
-    fontSize: 25,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: '#111111',
-  },
-  searchContainer: {
-    flex: 1,
-    minWidth: 120,
-    height: 44,
-    position: 'relative',
-  },
-  searchInput: {
-    width: '100%',
-    height: 44,
-    borderRadius: 999,
-    backgroundColor: '#111111',
-    color: '#ffffff',
-    paddingLeft: 18,
-    paddingRight: 52,
-    fontSize: 15,
-  },
-  searchButton: {
-    position: 'absolute',
-    right: 6,
-    top: 5,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchIcon: {
-    fontSize: 16,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  accountLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  accountIcon: {
-    fontSize: 20,
-  },
-  accountText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cartButton: {
-    position: 'relative',
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#999999',
-    borderRadius: 23,
-    backgroundColor: '#f1f1f1',
-  },
-  cartIcon: {
-    fontSize: 20,
-  },
-  cartCount: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    fontSize: 11,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 4,
-  },
+ header: { backgroundColor: '#fff', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#ddd' },
+ row: { minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+ brand: { flex: 1, minWidth: 0 }, logo: { fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontSize: 20, fontWeight: '900', color: '#111' },
+ actions: { flexDirection: 'row', alignItems: 'center', gap: 10 }, account: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 }, person: { fontSize: 17 }, accountText: { fontSize: 12 },
+ cart: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#aaa', backgroundColor: '#f1f1f1', alignItems: 'center', justifyContent: 'center' },
+ badge: { position: 'absolute', top: -3, right: -3, minWidth: 17, paddingHorizontal: 3, height: 17, borderRadius: 9, backgroundColor: '#000', color: '#fff', textAlign: 'center', fontSize: 10, lineHeight: 17 },
+ search: { position: 'relative', width: '100%' }, input: { height: 40, borderRadius: 24, backgroundColor: '#111', color: '#fff', paddingLeft: 14, paddingRight: 46, fontSize: 12 },
+ searchButton: { position: 'absolute', right: 5, top: 4, width: 32, height: 32, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }
 });
