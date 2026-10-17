@@ -1,0 +1,34 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate Existing Behavior",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"node_modules/jest/bin/jest.js",
+				"--runInBand",
+				"--ci",
+				"--verbose"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Validate Cart Tests",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"node_modules/jest/bin/jest.js",
+				"--runInBand",
+				"--ci",
+				"--verbose",
+				"src/context/__tests__/cartHelpers.test.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}
