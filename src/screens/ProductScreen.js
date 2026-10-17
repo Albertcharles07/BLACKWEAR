@@ -1,358 +1,43 @@
 import React, { useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Screen from '../components/Screen';
 import Footer from '../components/Footer';
-import { product } from '../data/products';
+import BackLink from '../components/BackLink';
+import ProductArtwork from '../components/ProductArtwork';
+import { useProducts } from '../context/ProductsContext';
+import { getDiscount, getPrice, hasPromotion, money } from '../utils/catalog';
 import { useCart } from '../context/CartContext';
-
-const sizes = ['P', 'M', 'G', 'GG'];
-
-export default function ProductScreen({ navigation }) {
-  const [search, setSearch] = useState('');
-  const [selectedSize, setSelectedSize] = useState('M');
-  const { addProduct, totalQuantity } = useCart();
-
-  function addToCart() {
-    addProduct(product, selectedSize);
-    navigation.navigate('Cart');
-  }
-
-  function submitSearch() {
-    navigation.navigate('Home');
-  }
-
-  return (
-    <View style={styles.page}>
-      <ScrollView>
-        <View style={styles.header}>
-          <Pressable onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.logo}>BLACKWEAR</Text>
-          </Pressable>
-
-          <View style={styles.searchContainer}>
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              onSubmitEditing={submitSearch}
-              placeholder="Pesquisar produtos..."
-              placeholderTextColor="#bdbdbd"
-              style={styles.searchInput}
-            />
-            <Pressable style={styles.searchButton} onPress={submitSearch}>
-              <Text>🔍</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.headerActions}>
-            <Pressable
-              style={styles.accountLink}
-              onPress={() => navigation.navigate('Account')}
-            >
-              <Text>👤</Text>
-              <Text style={styles.accountText}>Conta</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.cartButton}
-              onPress={() => navigation.navigate('Cart')}
-            >
-              <Text>🛒</Text>
-              <Text style={styles.cartCount}>{totalQuantity}</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <Pressable
-          style={styles.backArea}
-          onPress={() => {
-            if (navigation.canGoBack()) navigation.goBack();
-            else navigation.navigate('Home');
-          }}
-        >
-          <Text style={styles.backText}>← VOLTAR</Text>
-        </Pressable>
-
-        <View style={styles.imageSection}>
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.placeholderText}>BLACKWEAR</Text>
-          </View>
-        </View>
-
-        <View style={styles.info}>
-          <Text style={styles.collection}>COLEÇÃO ESSENCIAL</Text>
-
-          <Text style={styles.title}>Camiseta Oversized Premium</Text>
-
-          <Text style={styles.price}>R$ 189,90</Text>
-
-          <Text style={styles.description}>
-            Desenvolvida em algodão 100% premium com modelagem oversized confortável,
-            ombros caídos e gola canelada de 3cm que mantém o caimento estruturado.
-            {'\n\n'}
-            Uma peça minimalista feita para resistir ao tempo e ao desgaste urbano.
-          </Text>
-
-          <View style={styles.sizesArea}>
-            <Text style={styles.sizesTitle}>SELECIONE O TAMANHO:</Text>
-
-            <View style={styles.sizesList}>
-              {sizes.map((size) => (
-                <Pressable
-                  key={size}
-                  style={[
-                    styles.sizeButton,
-                    selectedSize === size && styles.sizeButtonActive,
-                  ]}
-                  onPress={() => setSelectedSize(size)}
-                >
-                  <Text
-                    style={[
-                      styles.sizeText,
-                      selectedSize === size && styles.sizeTextActive,
-                    ]}
-                  >
-                    {size}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.actions}>
-            <Pressable style={styles.buyButton} onPress={addToCart}>
-              <Text style={styles.buyText}>COMPRAR AGORA</Text>
-            </Pressable>
-
-            <Pressable style={styles.cartAddButton} onPress={addToCart}>
-              <Text style={styles.cartAddText}>ADICIONAR AO CARRINHO</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <Footer showCopyright={false} />
-      </ScrollView>
-    </View>
-  );
+export default function ProductScreen({ navigation, route }) {
+ const { products } = useProducts();
+ const product = products.find(item => item.id === route.params?.productId);
+ if (!product) return <Screen navigation={navigation} active="Products"><BackLink navigation={navigation} fallback="Products" /><View style={styles.info}><Text style={styles.title}>Produto não encontrado</Text><Text style={styles.description}>Volte ao catálogo e escolha outro produto.</Text></View></Screen>;
+ return <ProductDetail key={product.id} navigation={navigation} product={product} />;
 }
-
+function ProductDetail({ navigation, product }) {
+ const [selectedSize, setSelectedSize] = useState(product.sizes.includes('M') ? 'M' : product.sizes[0]);
+ const [added, setAdded] = useState(false);
+ const { addProduct } = useCart();
+ function add(buyNow) { addProduct(product, selectedSize); setAdded(true); if (buyNow) navigation.navigate('Cart'); }
+ return <Screen navigation={navigation} active="Products">
+  <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+   <BackLink navigation={navigation} fallback="Products" />
+   <View style={styles.image}><ProductArtwork product={product} large />{hasPromotion(product) && <Text style={styles.badge}>−{getDiscount(product)}% OFF</Text>}</View>
+   <View style={styles.info}>
+    <Text style={styles.collection}>{product.modality.toUpperCase()} / {product.team === 'Sem time' ? 'BLACKWEAR' : product.team.toUpperCase()}</Text>
+    <Text style={styles.title}>{product.name}</Text>
+    {hasPromotion(product) && <Text style={styles.oldPrice}>{money(product.price)}</Text>}
+    <Text style={styles.price}>{money(getPrice(product))}</Text>
+    <Text style={styles.description}>{product.description}</Text>
+    <Text style={styles.sizesTitle}>SELECIONE O TAMANHO</Text>
+    <View style={styles.sizes}>{product.sizes.map(size => <Pressable key={size} accessibilityRole="radio" accessibilityLabel={`Tamanho ${size}`} accessibilityState={{ checked: selectedSize === size }} style={[styles.size, selectedSize === size && styles.sizeActive]} onPress={() => { setSelectedSize(size); setAdded(false); }}><Text style={[styles.sizeText, selectedSize === size && { color: '#fff' }]}>{size}</Text></Pressable>)}</View>
+    {added && <View style={styles.feedback}><Text accessibilityLiveRegion="polite" style={styles.feedbackText}>Adicionado ao carrinho · tamanho {selectedSize}</Text><Pressable accessibilityRole="button" style={styles.cartLink} onPress={() => navigation.navigate('Cart')}><Text style={styles.cartLinkText}>VER CARRINHO →</Text></Pressable></View>}
+    <Pressable accessibilityRole="button" style={styles.primary} onPress={() => add(true)}><Text style={styles.primaryText}>COMPRAR AGORA</Text></Pressable>
+    <Pressable accessibilityRole="button" style={styles.secondary} onPress={() => add(false)}><Text style={styles.secondaryText}>ADICIONAR AO CARRINHO</Text></Pressable>
+   </View>
+   <Footer showCopyright={false} />
+  </ScrollView>
+ </Screen>;
+}
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    width: '100%',
-    minHeight: 82,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-    flexWrap: 'wrap',
-  },
-  logo: {
-    fontFamily: 'serif',
-    fontSize: 21,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: '#111111',
-  },
-  searchContainer: {
-    flex: 1,
-    minWidth: 140,
-    height: 43,
-    position: 'relative',
-  },
-  searchInput: {
-    width: '100%',
-    height: 43,
-    borderRadius: 999,
-    backgroundColor: '#111111',
-    color: '#ffffff',
-    paddingHorizontal: 17,
-    paddingRight: 50,
-    fontSize: 14,
-  },
-  searchButton: {
-    position: 'absolute',
-    right: 6,
-    top: 5,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  accountLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  accountText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cartButton: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#999999',
-    borderRadius: 22,
-    backgroundColor: '#eeeeee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartCount: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    minWidth: 19,
-    height: 19,
-    borderRadius: 10,
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 19,
-    paddingHorizontal: 4,
-  },
-  backArea: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 8,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  imageSection: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  imagePlaceholder: {
-    width: '100%',
-    aspectRatio: 1.4,
-    borderWidth: 2,
-    borderColor: '#333333',
-    borderRadius: 14,
-    backgroundColor: '#d9d9d9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    fontFamily: 'serif',
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: 3,
-    color: '#555555',
-  },
-  info: {
-    paddingHorizontal: 16,
-    paddingTop: 30,
-  },
-  collection: {
-    marginBottom: 10,
-    color: '#777777',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  title: {
-    marginBottom: 10,
-    fontSize: 27,
-    lineHeight: 32,
-    fontWeight: '800',
-  },
-  price: {
-    marginBottom: 20,
-    fontSize: 21,
-    fontWeight: '900',
-  },
-  description: {
-    marginBottom: 26,
-    color: '#5f5f5f',
-    fontSize: 15,
-    lineHeight: 25,
-  },
-  sizesArea: {
-    marginBottom: 28,
-  },
-  sizesTitle: {
-    marginBottom: 12,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  sizesList: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  sizeButton: {
-    width: 48,
-    height: 48,
-    borderWidth: 1.5,
-    borderColor: '#222222',
-    borderRadius: 24,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sizeButtonActive: {
-    backgroundColor: '#000000',
-  },
-  sizeText: {
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  sizeTextActive: {
-    color: '#ffffff',
-  },
-  actions: {
-    flexDirection: 'column',
-    gap: 13,
-  },
-  buyButton: {
-    width: '100%',
-    minHeight: 58,
-    borderRadius: 999,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buyText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  cartAddButton: {
-    width: '100%',
-    minHeight: 58,
-    borderRadius: 999,
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#222222',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartAddText: {
-    color: '#111111',
-    fontSize: 16,
-    fontWeight: '800',
-  },
+ image: { margin: 16, borderRadius: 14, overflow: 'hidden' }, badge: { position: 'absolute', left: 12, top: 12, backgroundColor: '#111', color: '#fff', paddingVertical: 7, paddingHorizontal: 10, borderRadius: 5, fontSize: 11, fontWeight: '800' }, info: { padding: 20 }, collection: { fontSize: 10, letterSpacing: 1.2, color: '#777', fontWeight: '700', marginBottom: 10 }, title: { fontSize: 27, lineHeight: 33, fontWeight: '900', marginBottom: 14 }, oldPrice: { fontSize: 13, textDecorationLine: 'line-through', color: '#888', marginBottom: 3 }, price: { fontSize: 25, fontWeight: '900', marginBottom: 18 }, description: { fontSize: 13, lineHeight: 21, color: '#777', marginBottom: 24 }, sizesTitle: { fontSize: 11, fontWeight: '800', marginBottom: 12 }, sizes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }, size: { minWidth: 44, height: 44, paddingHorizontal: 12, borderRadius: 22, borderWidth: 1, borderColor: '#111', alignItems: 'center', justifyContent: 'center' }, sizeActive: { backgroundColor: '#111' }, sizeText: { fontSize: 13, fontWeight: '800' }, primary: { minHeight: 50, backgroundColor: '#111', borderRadius: 25, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }, primaryText: { fontSize: 12, fontWeight: '800', color: '#fff' }, secondary: { minHeight: 50, borderRadius: 25, borderWidth: 1, borderColor: '#111', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }, secondaryText: { fontSize: 12, fontWeight: '800' }, feedback: { padding: 14, backgroundColor: '#ecf2e7', borderRadius: 8, marginBottom: 18 }, feedbackText: { color: '#38552e', fontSize: 12, lineHeight: 18 }, cartLink: { minHeight: 36, justifyContent: 'center' }, cartLinkText: { color: '#38552e', fontWeight: '800', fontSize: 10 },
 });

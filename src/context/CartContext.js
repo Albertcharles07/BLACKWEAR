@@ -1,10 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { useProducts } from './ProductsContext';
+import { getPrice } from '../utils/catalog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartContext = createContext(null);
-const CART_KEY = 'blackwearCart';
+const CART_KEY = 'blackwearCartV2';
 
 export function CartProvider({ children }) {
+  const { products, loading: productsLoading } = useProducts();
   const [cart, setCart] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -12,7 +16,11 @@ export function CartProvider({ children }) {
     async function loadCart() {
       try {
         const saved = await AsyncStorage.getItem(CART_KEY);
-        setCart(saved ? JSON.parse(saved) : []);
+        const parsed = saved ? JSON.parse(saved) : [];
+        setCart(Array.isArray(parsed) ? parsed.filter(item => item && typeof item.name === 'string' && Number.isFinite(item.price) && item.price >= 0 && Number.isInteger(item.quantity) && item.quantity > 0 && typeof item.size === 'string').map(item => {
+          const product = products.find(p => item.id ? p.id === item.id : p.name === item.name);
+          return product ? { ...item, id: product.id, price: getPrice(product) } : null;
+        }).filter(Boolean) : []);
       } catch {
         setCart([]);
       } finally {
@@ -20,8 +28,8 @@ export function CartProvider({ children }) {
       }
     }
 
-    loadCart();
-  }, []);
+    if (!productsLoading) loadCart();
+  }, [productsLoading]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -35,20 +43,20 @@ export function CartProvider({ children }) {
   );
 
   const total = useMemo(
-    () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    () => cart.reduce((sum, item) => sum + Math.round(item.price * 100) * item.quantity, 0) / 100,
     [cart]
   );
 
   function addProduct(product, size) {
     setCart((current) => {
       const existing = current.find(
-        (item) => item.name === product.name && item.size === size
+        (item) => (item.id ? item.id === product.id : item.name === product.name) && item.size === size
       );
 
       if (existing) {
         return current.map((item) =>
-          item.name === product.name && item.size === size
-            ? { ...item, quantity: item.quantity + 1 }
+          (item.id ? item.id === product.id : item.name === product.name) && item.size === size
+            ? { ...item, id: product.id, price: getPrice(product), quantity: item.quantity + 1 }
             : item
         );
       }
@@ -56,8 +64,9 @@ export function CartProvider({ children }) {
       return [
         ...current,
         {
+          id: product.id,
           name: product.name,
-          price: product.price,
+          price: getPrice(product),
           size,
           quantity: 1,
         },
@@ -92,10 +101,11 @@ export function CartProvider({ children }) {
     setCart((current) => current.filter((_, i) => i !== index));
   }
 
-  async function clearCart() {
+  function clearCart() {
     setCart([]);
-    await AsyncStorage.removeItem(CART_KEY);
   }
+
+  if (!loaded) return <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color="#111" accessibilityLabel="Carregando carrinho" /></View>;
 
   return (
     <CartContext.Provider
