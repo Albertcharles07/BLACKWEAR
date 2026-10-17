@@ -15,7 +15,7 @@ export default function Footer({ showCopyright = true }) {
 const styles = StyleSheet.create({
   footer: {
     width: '100%',
-    paddingVertical: 35,
+    paddingVertical: 24,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: '#dddddd',
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   copy: {
     color: '#777777',
-    fontSize: 13,
+    fontSize: 10,
     textAlign: 'center',
   },
 });

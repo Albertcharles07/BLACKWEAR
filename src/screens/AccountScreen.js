@@ -1,100 +1,31 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import AuthForm from '../components/AuthForm';
+import Screen from '../components/Screen';
+import Footer from '../components/Footer';
+import { useAuth } from '../context/AuthContext';
 export default function AccountScreen({ navigation }) {
-  return (
-    <View style={styles.page}>
-      <View style={styles.accountPage}>
-        <Pressable onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>BLACKWEAR</Text>
-        </Pressable>
-
-        <Text style={styles.title}>Minha Conta</Text>
-
-        <Text style={styles.description}>
-          Área de acesso da BLACKWEAR. Escolha uma opção para continuar.
-        </Text>
-
-        <Pressable style={styles.button} onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.buttonText}>CRIAR CONTA</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.button, styles.secondary]}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.secondaryText}>ENTRAR</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.button, styles.secondary]}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.secondaryText}>VOLTAR PARA A LOJA</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
+ const { user, logout } = useAuth();
+ if (!user) return <AuthForm navigation={navigation} />;
+ return <Screen navigation={navigation} active="Account">
+  <ScrollView contentContainerStyle={styles.content}>
+   <View style={styles.main}>
+    <Text style={styles.eyebrow}>SUA BLACKWEAR</Text>
+    <Text style={styles.title}>Minha conta</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel={`Ver dados de ${user.name}`} style={styles.identity} onPress={() => navigation.navigate('Profile')}>
+     <View style={styles.avatar}><Text style={styles.initial}>{user.name.trim().slice(0, 1).toUpperCase() || 'B'}</Text></View>
+     <View style={{ flex: 1 }}><Text style={styles.name}>{user.name}</Text><Text style={styles.subtitle}>Ver e editar meus dados</Text></View>
+     <Text style={styles.arrow}>›</Text>
+    </Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel="Abrir administração" style={[styles.identity, { marginTop: 14 }]} onPress={() => navigation.navigate('Admin')}><View style={{ flex: 1 }}><Text style={styles.name}>Gerenciar produtos</Text><Text style={styles.subtitle}>Acessar painel de administração</Text></View><Text style={styles.arrow}>›</Text></Pressable>
+    <View style={styles.separator} />
+    <Pressable accessibilityRole="button" style={styles.logout} onPress={logout}><Text style={styles.logoutText}>SAIR DA CONTA</Text></Pressable>
+   </View>
+   <Footer />
+  </ScrollView>
+ </Screen>;
 }
-
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#202020',
-  },
-  accountPage: {
-    width: '100%',
-    maxWidth: 500,
-    padding: 35,
-    backgroundColor: '#ffffff',
-    borderRadius: 15,
-    alignItems: 'center',
-  },
-  logo: {
-    marginBottom: 30,
-    color: '#111111',
-    fontFamily: 'serif',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  title: {
-    marginBottom: 12,
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  description: {
-    marginBottom: 28,
-    color: '#666666',
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  button: {
-    width: '100%',
-    minHeight: 55,
-    marginTop: 12,
-    borderRadius: 999,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  secondary: {
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#111111',
-  },
-  secondaryText: {
-    color: '#111111',
-    fontSize: 15,
-    fontWeight: '800',
-  },
+ content: { flexGrow: 1 }, main: { flex: 1, width: '100%', maxWidth: 440, alignSelf: 'center', padding: 24 }, eyebrow: { fontSize: 9, letterSpacing: 1.5, color: '#777', fontWeight: '800', marginBottom: 8 }, title: { fontSize: 28, fontWeight: '900', marginBottom: 24 },
+ identity: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 16, minHeight: 88, borderRadius: 12, backgroundColor: '#f4f4f0' }, avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#222d22', alignItems: 'center', justifyContent: 'center' }, initial: { fontSize: 20, fontWeight: '800', color: '#e3ecd9' }, name: { fontSize: 15, fontWeight: '800', marginBottom: 5 }, subtitle: { fontSize: 11, lineHeight: 16, color: '#777' }, arrow: { fontSize: 28, color: '#777' }, separator: { height: 1, backgroundColor: '#e5e5e5', marginTop: 24, marginBottom: 12 }, logout: { minHeight: 44, alignItems: 'center', justifyContent: 'center' }, logoutText: { fontSize: 11, fontWeight: '800', textDecorationLine: 'underline' },
 });
